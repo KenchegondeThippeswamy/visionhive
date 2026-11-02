@@ -1,0 +1,35 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+jobs:
+  build-scan:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, upload-svc, ingest-worker]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan source and dependencies (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: services/${{ matrix.service }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+      - name: Build image
+        run: docker build -t visionhive/${{ matrix.service }}:${{ github.sha }} services/${{ matrix.service }}
+
+      - name: Scan image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: visionhive/${{ matrix.service }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+      # Later (Step 6): ECR login with an OIDC role, docker push, GitOps tag bump

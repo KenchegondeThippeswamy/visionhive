@@ -1,0 +1,85 @@
+x-aws-env: &aws-env
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  AWS_REGION: us-east-1
+x-db-env: &db-env
+  DB_HOST: postgres
+  DB_NAME: visionhive
+  DB_USER: visionhive
+  DB_PASSWORD: visionhive
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: visionhive
+      POSTGRES_USER: visionhive
+      POSTGRES_PASSWORD: visionhive
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U visionhive"]
+      interval: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3.8
+    ports: ["4566:4566"]
+    environment:
+      SERVICES: s3,sqs
+    volumes:
+      - ./localstack/init.sh:/etc/localstack/init/ready.d/init.sh:ro
+
+  upload-svc:
+    build: ../services/upload-svc
+    ports: ["8001:8001"]
+    environment:
+      <<: [*aws-env, *db-env]
+      S3_ENDPOINT: http://localstack:4566
+      S3_PUBLIC_ENDPOINT: http://localhost:4566
+      SQS_ENDPOINT: http://localstack:4566
+      QUEUE_URL: http://localstack:4566/000000000000/visionhive-jobs
+      S3_BUCKET: visionhive-videos
+    depends_on:
+      postgres: {condition: service_healthy}
+      localstack: {condition: service_started}
+
+  api-gateway:
+    build: ../services/api-gateway
+    ports: ["8080:8080"]
+    environment:
+      <<: *db-env
+      UPLOAD_SVC_URL: http://upload-svc:8001
+    depends_on:
+      postgres: {condition: service_healthy}
+      upload-svc: {condition: service_started}
+
+  ingest-worker:
+    build: ../services/ingest-worker
+    ports: ["8002:8000"]
+    environment:
+      <<: [*aws-env, *db-env]
+      SQS_ENDPOINT: http://localstack:4566
+      QUEUE_URL: http://localstack:4566/000000000000/visionhive-jobs
+      PROCESS_SECONDS: "5"
+    depends_on:
+      postgres: {condition: service_healthy}
+      localstack: {condition: service_started}
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    ports: ["9090:9090"]
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports: ["3000:3000"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+
+volumes:
+  pgdata:
