@@ -14,7 +14,7 @@ variable "environment" {
 
 variable "region" {
   type    = string
-  default = "ap-south-1" # change if you use another region
+  default = "ap-southeast-2" # change if you use another region
 }
 
 variable "vpc_cidr" {
