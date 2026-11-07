@@ -11,3 +11,11 @@ venv/
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
+*.plan
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.plan
+crash.log
