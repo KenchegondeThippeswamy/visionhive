@@ -6,3 +6,14 @@ single_nat_gateway = false
 ecr_tag_mutability = "IMMUTABLE"
 force_destroy      = false
 enable_kms         = true
+
+enable_rds               = true
+enable_efs               = true
+enable_bastion           = false
+db_instance_class        = "db.t4g.small"
+db_allocated_storage     = 20
+db_multi_az              = true
+db_backup_retention_days = 7
+db_deletion_protection   = true
+db_skip_final_snapshot   = false
+efs_backup_enabled       = true
