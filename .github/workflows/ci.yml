@@ -32,4 +32,6 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           ignore-unfixed: true
+          skip-files: "**/pip/_vendor/bom.cdx.json"
+
       # Later (Step 6): ECR login with an OIDC role, docker push, GitOps tag bump
