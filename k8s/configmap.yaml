@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: postgres
+  DB_NAME: visionhive
+  DB_USER: visionhive
+  AWS_REGION: us-east-1
+  S3_BUCKET: visionhive-videos
+  S3_ENDPOINT: http://localstack:4566
+  S3_PUBLIC_ENDPOINT: http://localhost:4566
+  SQS_ENDPOINT: http://localstack:4566
+  QUEUE_URL: http://localstack:4566/000000000000/visionhive-jobs
+  UPLOAD_SVC_URL: http://upload-svc:8001
+  PROCESS_SECONDS: "5"

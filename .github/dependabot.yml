@@ -1,0 +1,39 @@
+# Proposes version updates as pull requests, so pinned versions do not go stale
+# (this is how the old starlette and trivy-action problems would have been caught early).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /services/api-gateway
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /services/upload-svc
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /services/ingest-worker
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /services/api-gateway
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /services/upload-svc
+    target-branch: dev
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /services/ingest-worker
+    target-branch: dev
+    schedule:
+      interval: weekly
