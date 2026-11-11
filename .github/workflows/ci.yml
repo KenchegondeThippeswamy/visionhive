@@ -4,16 +4,49 @@ on:
   push:
     branches: [main, dev]
 
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_PREFIX: visionhive-dev
+
 jobs:
-  build-scan:
+  build-scan-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
+      fail-fast: false
       matrix:
         service: [api-gateway, upload-svc, ingest-worker]
+    env:
+      # Push images only on direct pushes to dev.
+      PUSH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Build image
         run: docker build -t visionhive/${{ matrix.service }}:${{ github.sha }} services/${{ matrix.service }}
 
-      # Later (Step 6): ECR login with an OIDC role, docker push, GitOps tag bump
+      - name: Configure AWS credentials
+        if: env.PUSH == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to ECR
+        if: env.PUSH == 'true'
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag and push to ECR
+        if: env.PUSH == 'true'
+        env:
+          SERVICE: ${{ matrix.service }}
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          SHORT="${GITHUB_SHA::7}"
+          IMAGE="${REGISTRY}/${ECR_PREFIX}/${SERVICE}"
+          docker tag "visionhive/${SERVICE}:${GITHUB_SHA}" "${IMAGE}:${SHORT}"
+          docker push "${IMAGE}:${SHORT}"
+          echo "Pushed ${IMAGE}:${SHORT}" >> "$GITHUB_STEP_SUMMARY"
