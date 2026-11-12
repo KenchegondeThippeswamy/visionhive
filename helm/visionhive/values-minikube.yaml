@@ -1,0 +1,12 @@
+# Local cluster. Run ./scripts/helm-up.sh (it builds the images inside Minikube and creates the Secrets).
+image:
+  registry: ""
+  repositoryPrefix: visionhive
+  tag: local
+postgres:
+  enabled: true
+localstack:
+  enabled: true
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: visionhive
+description: VisionHive video analysis platform (api-gateway, upload-svc, ingest-worker, plus optional local PostgreSQL and LocalStack)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

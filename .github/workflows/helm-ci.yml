@@ -1,0 +1,19 @@
+name: helm-ci
+on:
+  pull_request:
+    paths:
+      - "helm/**"
+      - "scripts/helm-check.sh"
+      - ".github/workflows/helm-ci.yml"
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Helm version (preinstalled on GitHub runners)
+        run: helm version --short
+
+      - name: Lint, render and schema-check every values file
+        run: ./scripts/helm-check.sh

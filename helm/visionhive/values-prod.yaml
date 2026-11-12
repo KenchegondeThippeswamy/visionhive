@@ -1,0 +1,66 @@
+# EKS prod environment. The image tag is set by CI/GitOps (--set image.tag=... or gitops/prod/image-tag.yaml).
+image:
+  registry: 282380327737.dkr.ecr.ap-southeast-2.amazonaws.com
+  repositoryPrefix: visionhive-prod
+  tag: ""
+  pullPolicy: IfNotPresent
+
+config:
+  awsRegion: ap-southeast-2
+  s3Bucket: visionhive-prod-videos-282380327737
+  s3Endpoint: ""
+  s3PublicEndpoint: ""
+  sqsEndpoint: ""
+  queueUrl: https://sqs.ap-southeast-2.amazonaws.com/282380327737/visionhive-prod-jobs
+  processSeconds: "5"
+
+database:
+  host: visionhive-prod-postgres.REPLACE.ap-southeast-2.rds.amazonaws.com
+  name: visionhive
+  user: visionhive_admin
+  existingSecret:
+    name: db-credentials # created by External Secrets from the RDS secret in Secrets Manager
+    key: password
+
+aws:
+  existingSecret: "" # no keys: each pod uses its IAM role (IRSA)
+
+postgres:
+  enabled: false
+localstack:
+  enabled: false
+
+serviceAccounts:
+  create: true
+
+ingress:
+  enabled: true
+  className: alb
+  host: ""
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+
+topologySpread:
+  enabled: true
+
+services:
+  api-gateway: # needs no AWS access, so it gets no IAM role
+    replicas: 3
+    hpa:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetCPU: 50
+    pdb:
+      enabled: true
+      minAvailable: 2
+  upload-svc:
+    replicas: 3
+    serviceAccountAnnotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::282380327737:role/visionhive-prod-irsa-upload-svc
+  ingest-worker:
+    replicas: 1
+    serviceAccountAnnotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::282380327737:role/visionhive-prod-irsa-ingest-worker

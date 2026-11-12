@@ -1,0 +1,14 @@
+VisionHive release {{ .Release.Name }} installed in namespace {{ .Release.Namespace }}.
+
+  Images:   {{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repositoryPrefix }}/<service>:{{ .Values.image.tag }}
+  Database: {{ .Values.database.host }}{{ if .Values.postgres.enabled }} (PostgreSQL inside the cluster){{ else }} (external){{ end }}
+  Storage:  {{ if .Values.localstack.enabled }}LocalStack (fake S3 and SQS){{ else }}real S3 and SQS{{ end }}
+
+Check it:
+  kubectl -n {{ .Release.Namespace }} get pods
+  helm -n {{ .Release.Namespace }} history {{ .Release.Name }}
+{{- if .Values.ingress.enabled }}
+  Ingress host: {{ .Values.ingress.host | default "(any host)" }}
+{{- end }}
+
+Roll back:   helm -n {{ .Release.Namespace }} rollback {{ .Release.Name }} <revision>

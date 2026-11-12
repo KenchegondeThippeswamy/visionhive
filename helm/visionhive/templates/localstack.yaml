@@ -1,0 +1,72 @@
+{{- if .Values.localstack.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-init
+  labels:
+    {{- include "visionhive.labels" . | nindent 4 }}
+data:
+  init.sh: |-
+    {{- .Files.Get "files/localstack-init.sh" | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localstack
+  labels:
+    app: localstack
+    {{- include "visionhive.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: localstack
+  ports:
+    - name: edge
+      port: 4566
+      targetPort: edge
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+  labels:
+    app: localstack
+    {{- include "visionhive.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+      annotations:
+        checksum/init: {{ .Files.Get "files/localstack-init.sh" | sha256sum }}
+    spec:
+      containers:
+        - name: localstack
+          image: {{ .Values.localstack.image | quote }}
+          ports:
+            - name: edge
+              containerPort: 4566
+          env:
+            - name: SERVICES
+              value: s3,sqs
+          readinessProbe:
+            httpGet:
+              path: /_localstack/health
+              port: edge
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            {{- toYaml .Values.localstack.resources | nindent 12 }}
+          volumeMounts:
+            - name: init
+              mountPath: /etc/localstack/init/ready.d
+      volumes:
+        - name: init
+          configMap:
+            name: localstack-init
+            defaultMode: 0755
+{{- end }}

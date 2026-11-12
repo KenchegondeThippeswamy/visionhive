@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    {{- include "visionhive.labels" . | nindent 4 }}
+data:
+  DB_HOST: {{ .Values.database.host | quote }}
+  DB_NAME: {{ .Values.database.name | quote }}
+  DB_USER: {{ .Values.database.user | quote }}
+  AWS_REGION: {{ .Values.config.awsRegion | quote }}
+  S3_BUCKET: {{ .Values.config.s3Bucket | quote }}
+  S3_ENDPOINT: {{ .Values.config.s3Endpoint | quote }}
+  S3_PUBLIC_ENDPOINT: {{ .Values.config.s3PublicEndpoint | quote }}
+  SQS_ENDPOINT: {{ .Values.config.sqsEndpoint | quote }}
+  QUEUE_URL: {{ .Values.config.queueUrl | quote }}
+  UPLOAD_SVC_URL: {{ printf "http://upload-svc:%v" (index .Values.services "upload-svc").port | quote }}
+  PROCESS_SECONDS: {{ .Values.config.processSeconds | quote }}

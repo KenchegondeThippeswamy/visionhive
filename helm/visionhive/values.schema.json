@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["image", "config", "database", "services"],
+  "properties": {
+    "image": {
+      "type": "object",
+      "required": ["repositoryPrefix"],
+      "properties": {
+        "registry": {"type": "string"},
+        "repositoryPrefix": {"type": "string", "minLength": 1},
+        "tag": {"type": "string"},
+        "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+      }
+    },
+    "database": {
+      "type": "object",
+      "required": ["host", "name", "user", "existingSecret"],
+      "properties": {
+        "host": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "user": {"type": "string", "minLength": 1}
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["enabled", "port", "portName"],
+        "properties": {
+          "enabled": {"type": "boolean"},
+          "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+          "replicas": {"type": "integer", "minimum": 0},
+          "hpa": {
+            "type": "object",
+            "properties": {
+              "enabled": {"type": "boolean"},
+              "minReplicas": {"type": "integer", "minimum": 1},
+              "maxReplicas": {"type": "integer", "minimum": 1},
+              "targetCPU": {"type": "integer", "minimum": 1, "maximum": 100}
+            }
+          }
+        }
+      }
+    }
+  }
+}
