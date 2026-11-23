@@ -23,7 +23,7 @@ database:
     key: password
 
 aws:
-  existingSecret: "" # no keys: each pod uses its IAM role (IRSA)
+  existingSecret: "" # no keys: AWS credentials are provided through EKS Pod Identity
 
 postgres:
   enabled: false
@@ -58,9 +58,5 @@ services:
       minAvailable: 1
   upload-svc:
     replicas: 2
-    serviceAccountAnnotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::282380327737:role/visionhive-dev-irsa-upload-svc
   ingest-worker:
     replicas: 1
-    serviceAccountAnnotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::282380327737:role/visionhive-dev-irsa-ingest-worker

@@ -1,0 +1,44 @@
+# Creates the application tables in RDS once. scripts/eks-bootstrap.sh fills in REPLACE_DB_HOST and
+# creates the ConfigMap db-init-sql from helm/visionhive/files/postgres-init.sql.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init
+  namespace: visionhive
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:16
+          command:
+            - sh
+            - -c
+            - psql "host=$DB_HOST dbname=$DB_NAME user=$DB_USER sslmode=require" -v ON_ERROR_STOP=1 -f /sql/init.sql
+          env:
+            - name: DB_HOST
+              value: REPLACE_DB_HOST
+            - name: DB_NAME
+              value: visionhive
+            - name: DB_USER
+              value: visionhive_admin
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+              readOnly: true
+      volumes:
+        - name: sql
+          configMap:
+            name: db-init-sql

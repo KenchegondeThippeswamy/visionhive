@@ -1,0 +1,11 @@
+# clusterName, region, vpcId and the role annotation are set by scripts/eks-bootstrap.sh
+replicaCount: 1
+createIngressClassResource: true
+ingressClass: alb
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi

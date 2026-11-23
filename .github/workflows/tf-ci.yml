@@ -19,17 +19,20 @@ jobs:
         run: terraform fmt -check -recursive
         working-directory: terraform
 
-      - name: Validate root module (no backend, no AWS access needed)
+      - name: Validate the environment stack (no backend, no AWS access needed)
         working-directory: terraform
         run: |
           terraform init -backend=false
           terraform validate
 
-      - name: Validate bootstrap
-        working-directory: terraform/bootstrap
+      - name: Validate the other stacks
         run: |
-          terraform init -backend=false
-          terraform validate
+          for dir in terraform/bootstrap terraform/github-oidc terraform/eks; do
+            if [ -d "$dir" ]; then
+              echo "== $dir"
+              (cd "$dir" && terraform init -backend=false -input=false && terraform validate)
+            fi
+          done
 
       - name: Security scan of Terraform code (report only)
         uses: aquasecurity/trivy-action@v0.35.0
