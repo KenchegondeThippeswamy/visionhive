@@ -1,0 +1,35 @@
+# MODE B: AWS-backed. ECR images, real S3 and SQS, the RDS database from Phase 5, secrets from Secrets Manager.
+# To use it: move this file to gitops/apps/ and delete gitops/apps/visionhive-local.yaml (one at a time).
+# Read gitops/local/aws.values.yaml first and fill in the database host.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: visionhive-local
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: visionhive
+  source:
+    repoURL: https://github.com/KenchegondeThippeswamy/visionhive.git
+    targetRevision: dev
+    path: helm/visionhive
+    helm:
+      releaseName: visionhive
+      valueFiles:
+        - values-minikube.yaml
+        - ../../gitops/local/values.yaml
+        - ../../gitops/local/aws.values.yaml # real AWS services instead of LocalStack and the in-cluster database
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: visionhive
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

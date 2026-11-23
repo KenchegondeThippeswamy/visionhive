@@ -1,0 +1,49 @@
+# Argo CD (chart 10.18.0, Argo CD v3.6.1), sized for Minikube on a laptop.
+configs:
+  params:
+    server.insecure: true # no TLS inside the cluster. Reach the UI with kubectl port-forward (scripts/gitops-ui.sh)
+
+dex:
+  enabled: false # no single sign-on needed
+
+notifications:
+  enabled: false
+
+redis-ha:
+  enabled: false
+
+server:
+  replicas: 1
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+repoServer:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+applicationSet:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi

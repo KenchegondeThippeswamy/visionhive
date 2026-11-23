@@ -1,0 +1,56 @@
+name: gitops-bump
+# OPTIONAL. Writes the image tag into gitops/local/values.yaml after the ci workflow succeeded on dev.
+# Switch it on with the repository variable GITOPS_BUMP=true (Settings, Variables).
+# The tag is the first 7 characters of the commit. It must match the tag your CI pushes to ECR (mode B).
+# GitHub only starts workflow_run workflows that exist on the DEFAULT branch (main): merge dev to main for it to run.
+# You can also run it by hand from the Actions tab and give a tag.
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Image tag to deploy
+        required: true
+
+jobs:
+  bump:
+    if: >-
+      vars.GITOPS_BUMP == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gitops-bump
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Work out the tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then TAG="$INPUT_TAG"; else TAG="${RUN_SHA::7}"; fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Write the tag
+        run: |
+          sed -i -E "s/^(  tag: ).*/\1\"${TAG}\"/" gitops/local/values.yaml
+          echo "image tag is now ${TAG}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gitops/local/values.yaml
+          if git diff --cached --quiet; then echo "nothing to commit"; exit 0; fi
+          git commit -m "chore(gitops): deploy ${TAG}"
+          git pull --rebase origin dev
+          git push origin HEAD:dev

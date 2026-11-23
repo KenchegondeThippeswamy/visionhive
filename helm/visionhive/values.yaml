@@ -12,6 +12,7 @@ image:
   repositoryPrefix: visionhive # image = registry/repositoryPrefix/service:tag
   tag: local
   pullPolicy: IfNotPresent
+  pullSecrets: [] # names of docker-registry Secrets. Minikube needs one to pull from ECR (scripts/local-secrets.sh --aws)
 
 config:
   awsRegion: us-east-1

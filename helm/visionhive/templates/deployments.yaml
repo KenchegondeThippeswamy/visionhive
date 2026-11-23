@@ -29,6 +29,12 @@ spec:
       {{- if $.Values.serviceAccounts.create }}
       serviceAccountName: {{ $name }}
       {{- end }}
+      {{- with $.Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range . }}
+        - name: {{ . }}
+        {{- end }}
+      {{- end }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001

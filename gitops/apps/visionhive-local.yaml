@@ -1,0 +1,32 @@
+# MODE A (default): self-contained. PostgreSQL and LocalStack run inside Minikube, images are built inside Minikube.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: visionhive-local
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: visionhive
+  source:
+    repoURL: https://github.com/KenchegondeThippeswamy/visionhive.git
+    targetRevision: dev
+    path: helm/visionhive
+    helm:
+      releaseName: visionhive
+      valueFiles:
+        - values-minikube.yaml
+        - ../../gitops/local/values.yaml # the image tag lives here
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: visionhive
+  syncPolicy:
+    automated:
+      prune: false # objects removed from Git are removed from the cluster
+      selfHeal: true # manual changes in the cluster are reverted
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

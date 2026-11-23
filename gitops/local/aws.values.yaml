@@ -1,0 +1,31 @@
+# MODE B values: the same chart, but pointing at real AWS services (used by gitops/examples/visionhive-local-aws.yaml).
+# Secrets are never in this file. Create them with ./scripts/local-secrets.sh --aws:
+#   db-credentials (key password), aws-credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY), ecr-pull (docker-registry).
+image:
+  registry: 282380327737.dkr.ecr.ap-southeast-2.amazonaws.com
+  repositoryPrefix: visionhive-dev
+  pullSecrets:
+    - ecr-pull # an ECR login lasts 12 hours: run ./scripts/local-secrets.sh --aws again to refresh it
+
+config:
+  awsRegion: ap-southeast-2
+  s3Bucket: visionhive-dev-videos-282380327737
+  s3Endpoint: "" # empty = real AWS
+  s3PublicEndpoint: ""
+  sqsEndpoint: ""
+  queueUrl: https://sqs.ap-southeast-2.amazonaws.com/282380327737/visionhive-dev-jobs
+
+database:
+  # The RDS database lives in private subnets, so pods in Minikube can only reach it through whatever path you
+  # already use for Phase 9 (for example a tunnel on your laptop, seen from the pods as host.minikube.internal).
+  host: REPLACE_WITH_A_HOST_REACHABLE_FROM_PODS
+  name: visionhive
+  user: visionhive_admin
+
+aws:
+  existingSecret: aws-credentials
+
+postgres:
+  enabled: false
+localstack:
+  enabled: false

@@ -1,0 +1,18 @@
+# What the visionhive applications may do: deploy from this repository into the visionhive namespace
+# and create no cluster-wide objects.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: visionhive
+  namespace: argocd
+spec:
+  description: VisionHive applications
+  sourceRepos:
+    - https://github.com/KenchegondeThippeswamy/visionhive.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: visionhive
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
