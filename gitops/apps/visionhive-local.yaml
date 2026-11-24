@@ -21,9 +21,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: visionhive
   syncPolicy:
-    automated:
-      prune: false # objects removed from Git are removed from the cluster
-      selfHeal: true # manual changes in the cluster are reverted
     retry:
       limit: 5
       backoff:

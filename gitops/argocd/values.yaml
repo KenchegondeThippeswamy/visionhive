@@ -1,5 +1,7 @@
 # Argo CD (chart 10.18.0, Argo CD v3.6.1), sized for Minikube on a laptop.
 configs:
+  cm:
+    application.resourceTrackingMethod: annotation
   params:
     server.insecure: true # no TLS inside the cluster. Reach the UI with kubectl port-forward (scripts/gitops-ui.sh)
 
