@@ -1,0 +1,38 @@
+{{- $svc := index .Values.services "ingest-worker" -}}
+{{- if and $svc.enabled $svc.keda $svc.keda.enabled }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: ingest-worker-sqs-auth
+spec:
+  secretTargetRef:
+    - parameter: awsAccessKeyID
+      name: {{ required "KEDA authentication secretName is required" $svc.keda.authentication.secretName }}
+      key: {{ required "KEDA accessKeyIdKey is required" $svc.keda.authentication.accessKeyIdKey }}
+    - parameter: awsSecretAccessKey
+      name: {{ required "KEDA secretAccessKeyKey is required" $svc.keda.authentication.secretName }}
+      key: {{ required "KEDA secretAccessKeyKey is required" $svc.keda.authentication.secretAccessKeyKey }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: ingest-worker-sqs
+spec:
+  scaleTargetRef:
+    name: ingest-worker
+  minReplicaCount: {{ $svc.keda.minReplicaCount }}
+  maxReplicaCount: {{ $svc.keda.maxReplicaCount }}
+  pollingInterval: {{ $svc.keda.pollingInterval }}
+  cooldownPeriod: {{ $svc.keda.cooldownPeriod }}
+  triggers:
+    - type: aws-sqs-queue
+      authenticationRef:
+        name: ingest-worker-sqs-auth
+      metadata:
+        queueURL: {{ required "KEDA queueURL is required" $svc.keda.queueURL | quote }}
+        awsRegion: {{ required "KEDA awsRegion is required" $svc.keda.awsRegion | quote }}
+        awsEndpoint: {{ required "KEDA awsEndpoint is required" $svc.keda.awsEndpoint | quote }}
+        queueLength: {{ $svc.keda.queueLength | quote }}
+        scaleOnInFlight: "true"
+{{- end }}
