@@ -171,6 +171,20 @@ services:
         memory: 256Mi
     hpa:
       enabled: false
+    keda:
+      enabled: false
+      minReplicaCount: 0
+      maxReplicaCount: 5
+      pollingInterval: 5
+      cooldownPeriod: 60
+      queueLength: "5"
+      queueURL: ""
+      awsRegion: ""
+      awsEndpoint: ""
+      authentication:
+        secretName: aws-local-credentials
+        accessKeyIdKey: AWS_ACCESS_KEY_ID
+        secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
     pdb:
       enabled: false
     serviceAccountAnnotations: {}

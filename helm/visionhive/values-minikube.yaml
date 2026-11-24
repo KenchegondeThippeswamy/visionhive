@@ -10,3 +10,12 @@ localstack:
 ingress:
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 10m
+
+# Phase 11: KEDA SQS autoscaling for the local Minikube environment.
+services:
+  ingest-worker:
+    keda:
+      enabled: true
+      queueURL: http://localstack.visionhive.svc.cluster.local:4566/000000000000/visionhive-jobs
+      awsRegion: us-east-1
+      awsEndpoint: http://localstack.visionhive.svc.cluster.local:4566

@@ -9,7 +9,7 @@ metadata:
     app: {{ $name }}
     {{- include "visionhive.labels" $ | nindent 4 }}
 spec:
-  {{- if not (and $svc.hpa $svc.hpa.enabled) }}
+  {{- if not (or (and $svc.hpa $svc.hpa.enabled) (and $svc.keda $svc.keda.enabled)) }}
   replicas: {{ $svc.replicas }}
   {{- end }}
   selector:
