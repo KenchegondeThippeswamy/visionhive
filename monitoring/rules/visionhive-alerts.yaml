@@ -1,0 +1,64 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: visionhive-alerts
+  namespace: monitoring
+  labels:
+    release: vh-observability
+spec:
+  groups:
+    - name: visionhive.availability
+      rules:
+        - alert: VisionHiveApiGatewayDown
+          expr: up{namespace="visionhive",service="api-gateway"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VisionHive API Gateway is down"
+            description: "Prometheus cannot scrape the API Gateway."
+
+        - alert: VisionHiveUploadServiceDown
+          expr: up{namespace="visionhive",service="upload-svc"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VisionHive Upload Service is down"
+            description: "Prometheus cannot scrape the Upload Service."
+
+    - name: visionhive.performance
+      rules:
+        - alert: VisionHiveHighP95Latency
+          expr: histogram_quantile(0.95, sum by (le) (rate(gateway_request_seconds_bucket[5m]))) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VisionHive API p95 latency is high"
+            description: "API Gateway p95 latency has exceeded one second for five minutes."
+
+        - alert: VisionHiveHigh5xxErrors
+          expr: |
+            (
+              sum(rate(gateway_requests_total{status=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(gateway_requests_total[5m])), 0.001)
+            ) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VisionHive API 5xx error rate is above 5%"
+            description: "More than 5% of API requests are returning server errors."
+
+    - name: visionhive.kubernetes
+      rules:
+        - alert: VisionHivePodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="visionhive"}[10m]) > 2
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VisionHive container is restarting"
+            description: "A VisionHive container restarted more than twice in ten minutes."

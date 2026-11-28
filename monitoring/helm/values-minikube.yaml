@@ -1,0 +1,72 @@
+# VisionHive Phase 12 - Lightweight Minikube observability
+
+grafana:
+  enabled: false
+
+prometheusOperator:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      cpu: 200m
+      memory: 160Mi
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    replicas: 1
+    retention: 12h
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    resources:
+      requests:
+        cpu: 100m
+        memory: 160Mi
+      limits:
+        cpu: 400m
+        memory: 320Mi
+    storageSpec: {}
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 150m
+        memory: 128Mi
+
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 48Mi
+    limits:
+      cpu: 100m
+      memory: 96Mi
+
+nodeExporter:
+  enabled: false
+
+defaultRules:
+  create: true
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeProxy:
+  enabled: false
